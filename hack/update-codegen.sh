@@ -36,17 +36,26 @@ KNATIVE_CODEGEN_PKG=${KNATIVE_CODEGEN_PKG:-$(cd ${REPO_ROOT}; ls -d -1 ./vendor/
 #                  k8s.io/kubernetes. The output-base is needed for the generators to output into the vendor dir
 #                  instead of the $GOPATH directly. For normal projects this can be dropped.
 chmod +x ${CODEGEN_PKG}/generate-groups.sh
-${CODEGEN_PKG}/generate-groups.sh "deepcopy,client,informer,lister" \
-  knative.dev/sample-controller/pkg/client knative.dev/sample-controller/pkg/apis \
-  "samples:v1alpha1" \
+# serving v2
+${CODEGEN_PKG}/generate-groups.sh "client,informer,lister" \
+  knative.dev/net-ingressv2/pkg/client sigs.k8s.io/service-apis \
+  "apis:v1alpha1" \
   --go-header-file ${REPO_ROOT}/hack/boilerplate/boilerplate.go.txt
 
-# Knative Injection
+# serving v2
 chmod +x ${KNATIVE_CODEGEN_PKG}/hack/generate-knative.sh
 ${KNATIVE_CODEGEN_PKG}/hack/generate-knative.sh "injection" \
-  knative.dev/sample-controller/pkg/client knative.dev/sample-controller/pkg/apis \
-  "samples:v1alpha1" \
+  knative.dev/net-ingressv2/pkg/client sigs.k8s.io/service-apis \
+  "apis:v1alpha1" \
   --go-header-file ${REPO_ROOT}/hack/boilerplate/boilerplate.go.txt
+
+# TODO:
+# Depends on generate-groups.sh to install bin/deepcopy-gen
+#${GOPATH}/bin/deepcopy-gen \
+#  -O zz_generated.deepcopy \
+#  --go-header-file ${REPO_ROOT}/hack/boilerplate/boilerplate.go.txt \
+#  -i knative.dev/net-ingressv2/pkg/reconciler/ingress \
+#  -i knative.dev/net-ingressv2/pkg/reconciler/ingressv2
 
 # Make sure our dependencies are up-to-date
 ${REPO_ROOT}/hack/update-deps.sh
